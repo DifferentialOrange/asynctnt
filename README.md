@@ -85,17 +85,15 @@ import asynctnt
 async def main():
     conn = asynctnt.Connection(host='127.0.0.1', port=3301)
     await conn.connect()
-
-    for i in range(1, 11):
-        await conn.insert('tester', [i, 'hello{}'.format(i), uuid.uuid4()])
-
-    data = await conn.select('tester', [])
-    tup = data[0]
-    print('tuple:', tup)
-    print(f'{tup[0]=}; {tup["id"]=}')
-    print(f'{tup[1]=}; {tup["name"]=}')
-    print(f'{tup[2]=}; {tup["uuid"]=}')
-
+    print(conn.version.Major)
+    print(conn.version.Minor)
+    print(conn.version.Patch)
+    print(conn.version.TagSuffix)
+    print(conn.version.CommitsSinceTag)
+    print(conn.version.CommitHashId)
+    print(conn.version.EnterpriseSDKRevision)
+    print(conn.version.EnterpriseIsOnMacOS)
+    print(conn.version.IsDevelopmentBuild)
     await conn.disconnect()
 
 

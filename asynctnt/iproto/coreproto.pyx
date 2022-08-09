@@ -15,7 +15,41 @@ import re
 from asynctnt.exceptions import TarantoolDatabaseError
 from asynctnt.log import logger
 
-VERSION_STRING_REGEX = re.compile(r'\s*Tarantool\s+([\d.]+)\s+.*')
+VERSION_STRING_REGEX = re.compile(r'^Tarantool\s(?:Enterprise\s)?' +
+    r'(?P<Major>\d+)\.(?P<Minor>\d+)?\.(?P<Patch>\d+)' +
+    r'(?:-(?P<TagSuffix>alpha\d+|beta\d+|rc\d+|entrypoint))?' +
+    r'-(?P<CommitsSinceTag>\d+)-(?P<CommitHashId>g[0-9a-f]+)' +
+    r'(?:-(?P<EnterpriseSDKRevision>r\d+)(?:-(?P<EnterpriseIsOnMacOS>macos))?)?' +
+    r'(?:-(?P<IsDevelopmentBuild>dev))?$')
+
+cdef class TarantoolVersion:
+    def __init__(self, version):
+        r = VERSION_STRING_REGEX.match(version.decode('ascii'))
+        # assert version.decode('ascii') == ''
+        logger.warning(version.decode('ascii'))
+
+        if r is None:
+            return
+        # assert r is not None
+
+        d = r.groupdict()
+
+        if len(d) == 0:
+            return
+        # assert len(d) > 0
+
+        self.Major = int(d['Major'])
+        self.Minor = int(d['Minor'])
+        self.Patch = int(d['Patch'])
+
+        self.TagSuffix = d['TagSuffix'] or ''
+        self.CommitsSinceTag = d['CommitsSinceTag']
+        self.CommitHashId = d['CommitHashId']
+
+        self.EnterpriseSDKRevision = d['EnterpriseSDKRevision'] or ''
+        self.EnterpriseIsOnMacOS = (d['EnterpriseIsOnMacOS'] is not None)
+
+        self.IsDevelopmentBuild = (d['IsDevelopmentBuild'] is not None)
 
 
 cdef class CoreProtocol:
@@ -135,19 +169,13 @@ cdef class CoreProtocol:
     cdef void _process__greeting(self):
         cdef size_t ver_length = TARANTOOL_VERSION_LENGTH
         rbuf = self.rbuf
-        self.version = self._parse_version(self.rbuf.get_slice_end(ver_length))
+        self.version = TarantoolVersion(self.rbuf.get_slice_end(ver_length))
         self.salt = base64.b64decode(
             self.rbuf.get_slice(ver_length,
                                 ver_length + SALT_LENGTH)
         )[:SCRAMBLE_SIZE]
         self.state = PROTOCOL_NORMAL
         self._on_greeting_received()
-
-    def _parse_version(self, version):
-        m = VERSION_STRING_REGEX.match(version.decode('ascii'))
-        if m is not None:
-            ver = m.group(1)
-            return tuple(map(int, ver.split('.')))
 
     cdef void _on_greeting_received(self):
         pass

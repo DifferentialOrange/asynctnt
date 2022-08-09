@@ -1,3 +1,5 @@
+from cpython cimport bool
+
 cdef enum ProtocolState:
     PROTOCOL_IDLE = 0
     PROTOCOL_GREETING = 1
@@ -8,6 +10,19 @@ cdef enum ConnectionState:
     CONNECTION_BAD = 0
     CONNECTION_CONNECTED = 1
     CONNECTION_FULL = 2
+
+
+cdef class TarantoolVersion:
+    cdef:
+        readonly int Major
+        readonly int Minor
+        readonly int Patch
+        readonly str TagSuffix
+        readonly int CommitsSinceTag
+        readonly str CommitHashId
+        readonly str EnterpriseSDKRevision
+        readonly bool EnterpriseIsOnMacOS
+        readonly bool IsDevelopmentBuild
 
 
 cdef class CoreProtocol:
@@ -21,7 +36,7 @@ cdef class CoreProtocol:
         ConnectionState con_state
 
         ReadBuffer rbuf
-        tuple version
+        TarantoolVersion version
         bytes salt
 
     cdef bint _is_connected(self)

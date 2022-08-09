@@ -175,7 +175,7 @@ local function check_version(expected, version)
         version = version_parse(version)
     end
 
-    return expected > version
+    return expected < version
 end
 
 local function bootstrap()
