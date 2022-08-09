@@ -135,7 +135,7 @@ cdef class BaseProtocol(CoreProtocol):
     cdef void _post_con_state_machine(self):
         if self.post_con_state == POST_CONNECTION_ID:
             assert self.version is not None
-            if self.version >= (2, 10, 0):
+            if self.version.Major >= 2 and self.version.Minor >= 10:
                 # send <id> request
                 self._do_id()
                 return

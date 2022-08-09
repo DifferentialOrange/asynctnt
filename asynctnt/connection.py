@@ -596,11 +596,11 @@ class Connection(Api):
         await self._protocol.refetch_schema()
 
     def _normalize_api(self):
-        if (1, 6) <= self.version < (1, 7):  # pragma: nocover
+        if (self.version.Major == 1) and (6 <= self.version.Minor < 7):  # pragma: nocover
             Api.call = Api.call16
             Connection.call = Connection.call16
 
-        if self.version < (2, 10):  # pragma: nocover
+        if (self.version.Major < 1) or (self.version.Major == 2) and (self.version.Minor < 10):  # pragma: nocover
             def stream_stub(_):
                 raise TarantoolError(
                     "streams are available only in Tarantool 2.10+"

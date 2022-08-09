@@ -278,6 +278,29 @@ class TarantoolTestCase(TestCase):
             tuples.append(item)
         return self.assertListEqual(tuples, target, *args)
 
+# https://github.com/tarantool/cartridge-cli/blob/0dd4e3aa5a5110b6b61dc656557cd98526808232/test/utils.py#L1398-L1418
+def parse_tarantool_version(s):
+    regstr = (r'^Tarantool\s(?:Enterprise\s)?' +
+              r'(?P<Major>\d+)\.(?P<Minor>\d+)?\.(?P<Patch>\d+)' +
+              r'(?:-(?P<TagSuffix>alpha\d+|beta\d+|rc\d+|entrypoint))?' +
+              r'-(?P<CommitsSinceTag>\d+)-(?P<CommitHashId>g[0-9a-f]+)' +
+              r'(?:-(?P<EnterpriseSDKRevision>r\d+)(?:-(?P<EnterpriseIsOnMacOS>macos))?)?' +
+              r'(?:-(?P<IsDevelopmentBuild>dev))?$')
+
+    r = re.match(regstr, s)
+    assert r is not None
+    ver = r.groupdict()
+    assert len(ver) != 0
+
+    ver['Major'] = int(ver['Major'])
+    ver['Minor'] = int(ver['Minor'])
+    ver['Patch'] = int(ver['Patch'])
+    ver['CommitsSinceTag'] = int(ver['CommitsSinceTag'])
+    ver['EnterpriseIsOnMacOS'] = (ver['EnterpriseIsOnMacOS'] is not None)
+    ver['IsDevelopmentBuild'] = (ver['IsDevelopmentBuild'] is not None)
+
+    return ver
+
 
 def ensure_version(*, min=None, max=None,
                    min_included=True, max_included=False):
